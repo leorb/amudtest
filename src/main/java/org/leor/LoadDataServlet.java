@@ -1,4 +1,4 @@
-package org.leor.myfirstapp;
+package org.leor;
 
 import java.io.IOException;
 import java.io.InputStream;
