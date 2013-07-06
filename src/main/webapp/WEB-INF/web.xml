@@ -8,7 +8,7 @@
     <description>Loads the data into Google DataStore</description>
     <display-name>LoadDataServlet</display-name>
     <servlet-name>LoadDataServlet</servlet-name>
-    <servlet-class>org.leor.myfirstapp.LoadDataServlet</servlet-class>
+    <servlet-class>org.leor.LoadDataServlet</servlet-class>
   </servlet>
   <servlet-mapping>
     <servlet-name>LoadDataServlet</servlet-name>
@@ -17,7 +17,7 @@
   
   <servlet>
     <servlet-name>GetLocationsByPos</servlet-name>
-    <servlet-class>org.leor.myfirstapp.GetLocationsByPos</servlet-class>
+    <servlet-class>org.leor.GetLocationsByPos</servlet-class>
   </servlet> 
   <servlet-mapping>
     <servlet-name>GetLocationsByPos</servlet-name>
@@ -26,7 +26,7 @@
 
   <servlet>
     <servlet-name>GetLocationsByText</servlet-name>
-    <servlet-class>org.leor.myfirstapp.GetLocationsByText</servlet-class>
+    <servlet-class>org.leor.GetLocationsByText</servlet-class>
   </servlet> 
   <servlet-mapping>
     <servlet-name>GetLocationsByText</servlet-name>
