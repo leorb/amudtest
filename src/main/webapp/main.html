@@ -6,7 +6,7 @@
 
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
 <link rel="stylesheet" href="/css/normalize.css">
-<link rel="stylesheet" href="//knockoutjs.com/examples/resources/twitterExample.css">
+<link rel="stylesheet" href="/css/twitterExample.css">
 
 <script src="js/amudApi.js"></script>
 <script src="//ajax.aspnetcdn.com/ajax/knockout/knockout-2.2.1.js"></script>
@@ -75,10 +75,6 @@ li {
 				</select>
 			</div>
 
-			<p>
-				Currently viewing <span
-					data-bind='text: editingList.userNames().length'> </span> user(s):
-			</p>
 			<div class='currentUsers' data-bind='with: editingList'>
 				<ul data-bind='foreach: userNames'>
 					<li>
@@ -89,9 +85,9 @@ li {
 			</div>
 
 			<form data-bind='submit: addUser'>
-				<label>Add user:</label> <input
-					data-bind='value: userNameToAdd, valueUpdate: "keyup", css: { invalid: !userNameToAddIsValid() }' />
-				<button data-bind='enable: canAddUserName' type='submit'>Add</button>
+				<label>Search by text:</label> <input
+					data-bind='value: searchText, valueUpdate: "keyup"' />
+				<button data-bind='enable: canSearch' type='submit'>Go</button>
 			</form>
 		</div>
 		<div class='tweets'>
@@ -121,17 +117,11 @@ li {
 		var savedLists = [
 				{
 					name : "Celebrities",
-					userNames : [ 'JohnCleese', 'MCHammer', 'StephenFry',
-							'algore', 'StevenSanderson' ]
-				},
-				{
-					name : "Microsoft people",
-					userNames : [ 'BillGates', 'shanselman', 'ScottGu' ]
+					userNames : [ 'JohnCleese' ]
 				},
 				{
 					name : "Tech pundits",
-					userNames : [ 'Scobleizer', 'LeoLaporte', 'techcrunch',
-							'BoingBoing', 'timoreilly', 'codinghorror' ]
+					userNames : [ 'codinghorror' ]
 				} ];
 
 		var TwitterListModel = function(lists, selectedList) {
@@ -140,7 +130,7 @@ li {
 				name : ko.observable(selectedList),
 				userNames : ko.observableArray()
 			};
-			this.userNameToAdd = ko.observable("");
+			this.searchText = ko.observable("");
 			this.currentTweets = ko.observableArray([])
 
 			this.findSavedList = function(name) {
@@ -151,9 +141,9 @@ li {
 			};
 
 			this.addUser = function() {
-				if (this.userNameToAdd() && this.userNameToAddIsValid()) {
-					this.editingList.userNames.push(this.userNameToAdd());
-					this.userNameToAdd("");
+				if (this.searchText()) {
+					this.editingList.userNames.push(this.searchText());
+					this.searchText("");
 				}
 			};
 
@@ -211,15 +201,8 @@ li {
 						return savedData.join("|") != editingData.join("|");
 					}, this);
 
-			this.userNameToAddIsValid = ko.computed(function() {
-				return (this.userNameToAdd() == "")
-						|| (this.userNameToAdd().match(
-								/^\s*[a-zA-Z0-9_]{1,15}\s*$/) != null);
-			}, this);
-
-			this.canAddUserName = ko.computed(function() {
-				return this.userNameToAddIsValid()
-						&& this.userNameToAdd() != "";
+			this.canSearch = ko.computed(function() {
+				return this.searchText() != "";
 			}, this);
 
 			// The active user tweets are (asynchronously) computed from editingList.userNames
