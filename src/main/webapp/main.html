@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html dir='rtl'>
 <head>
 	<meta http-equiv="content-type" content="text/html; charset=UTF-8">
 	<title>Amud Test</title>
@@ -67,18 +67,10 @@ li {
 	<div class='liveExample'>
 
 		<div class='configuration'>
-			<div class='listChooser'>
-				<button data-bind='click: deleteList, enable: editingList.name'>Delete</button>
-				<button data-bind='click: saveChanges, enable: hasUnsavedChanges'>Save</button>
-				<select
-					data-bind='options: savedLists, optionsValue: "name", value: editingList.name'>
-				</select>
-			</div>
 
 			<div class='currentUsers' data-bind='with: editingList'>
 				<ul data-bind='foreach: userNames'>
 					<li>
-						<button data-bind='click: $root.removeUser'>Remove</button>
 						<div data-bind="text: $data"></div>
 					</li>
 				</ul>
@@ -116,90 +108,24 @@ li {
 		// the view model, even though the view model does not know or care about any view that binds to it
 		var savedLists = [
 				{
-					name : "Celebrities",
-					userNames : [ 'JohnCleese' ]
-				},
-				{
-					name : "Tech pundits",
 					userNames : [ 'codinghorror' ]
 				} ];
 
-		var TwitterListModel = function(lists, selectedList) {
+		var TwitterListModel = function(lists) {
 			this.savedLists = ko.observableArray(lists);
 			this.editingList = {
-				name : ko.observable(selectedList),
 				userNames : ko.observableArray()
 			};
 			this.searchText = ko.observable("");
-			this.currentTweets = ko.observableArray([])
-
-			this.findSavedList = function(name) {
-				var lists = this.savedLists();
-				return ko.utils.arrayFirst(lists, function(list) {
-					return list.name === name;
-				});
-			};
+			this.currentTweets = ko.observableArray([]);
 
 			this.addUser = function() {
 				if (this.searchText()) {
+					this.editingList.userNames.removeAll();
 					this.editingList.userNames.push(this.searchText());
 					this.searchText("");
 				}
 			};
-
-			this.removeUser = function(userName) {
-				this.editingList.userNames.remove(userName)
-			}.bind(this);
-
-			this.saveChanges = function() {
-				var saveAs = prompt("Save as", this.editingList.name());
-				if (saveAs) {
-					var dataToSave = this.editingList.userNames().slice(0);
-					var existingSavedList = this.findSavedList(saveAs);
-					if (existingSavedList)
-						existingSavedList.userNames = dataToSave; // Overwrite existing list
-					else
-						this.savedLists.push({
-							name : saveAs,
-							userNames : dataToSave
-						}); // Add new list
-					this.editingList.name(saveAs);
-				}
-			};
-
-			this.deleteList = function() {
-				var nameToDelete = this.editingList.name();
-				var savedListsExceptOneToDelete = $.grep(this.savedLists(),
-						function(list) {
-							return list.name != nameToDelete
-						});
-				this.editingList
-						.name(savedListsExceptOneToDelete.length == 0 ? null
-								: savedListsExceptOneToDelete[0].name);
-				this.savedLists(savedListsExceptOneToDelete);
-			};
-
-			ko.computed(function() {
-				// Observe viewModel.editingList.name(), so when it changes (i.e., user selects a different list) we know to copy the saved list into the editing list
-				var savedList = this.findSavedList(this.editingList.name());
-				if (savedList) {
-					var userNamesCopy = savedList.userNames.slice(0);
-					this.editingList.userNames(userNamesCopy);
-				} else {
-					this.editingList.userNames([]);
-				}
-			}, this);
-
-			this.hasUnsavedChanges = ko.computed(
-					function() {
-						if (!this.editingList.name()) {
-							return this.editingList.userNames().length > 0;
-						}
-						var savedData = this.findSavedList(this.editingList
-								.name()).userNames;
-						var editingData = this.editingList.userNames();
-						return savedData.join("|") != editingData.join("|");
-					}, this);
 
 			this.canSearch = ko.computed(function() {
 				return this.searchText() != "";
@@ -212,7 +138,7 @@ li {
 			}, this);
 		};
 
-		ko.applyBindings(new TwitterListModel(savedLists, "Tech pundits"));
+		ko.applyBindings(new TwitterListModel(savedLists));
 
 		// Using jQuery for Ajax loading indicator - nothing to do with Knockout
 		$(".loadingIndicator").ajaxStart(function() {
