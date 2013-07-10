@@ -68,23 +68,23 @@ li {
 
 		<div class='configuration'>
 
-			<div class='currentUsers' data-bind='with: editingList'>
-				<ul data-bind='foreach: userNames'>
+			<div class='currentUsers'>
+				<ul>
 					<li>
-						<div data-bind="text: $data"></div>
+						<div data-bind="text: searchText"></div>
 					</li>
 				</ul>
 			</div>
 
 			<form data-bind='submit: addUser'>
 				<label>Search by text:</label> <input
-					data-bind='value: searchText, valueUpdate: "keyup"' />
+					data-bind='value: inputText, valueUpdate: "keyup"' />
 				<button data-bind='enable: canSearch' type='submit'>Go</button>
 			</form>
 		</div>
 		<div class='tweets'>
 			<div class='loadingIndicator'>Loading...</div>
-			<table width='100%' data-bind="foreach: currentTweets">
+			<table width='100%' data-bind="foreach: searchResults">
 				<tr>
 					<td><a class='twitterUser'
 						data-bind='attr: { href: "http://twitter.com/" + name }, text: name'
@@ -95,50 +95,34 @@ li {
 				</tr>
 			</table>
 		</div>
-		<pre data-bind="text: ko.toJSON(currentTweets, null, 2)"></pre>
+		<pre data-bind="text: ko.toJSON(searchResults, null, 2)"></pre>
 	</div>
 
 	<script type='text/javascript'>
-		//<![CDATA[ 
-
-		// The view model holds all the state we're working with. It also has methods that can edit it, and it uses
-		// computed observables to calculate more state in terms of the underlying data
-		// --
-		// The view (i.e., the HTML UI) binds to this using data-bind attributes, so it always stays up-to-date with
-		// the view model, even though the view model does not know or care about any view that binds to it
-		var savedLists = [
-				{
-					userNames : [ 'codinghorror' ]
-				} ];
-
-		var TwitterListModel = function(lists) {
-			this.savedLists = ko.observableArray(lists);
-			this.editingList = {
-				userNames : ko.observableArray()
-			};
+		var ViewModel = function() {
 			this.searchText = ko.observable("");
-			this.currentTweets = ko.observableArray([]);
+			this.inputText = ko.observable("");
+			this.searchResults = ko.observableArray([]);
 
 			this.addUser = function() {
-				if (this.searchText()) {
-					this.editingList.userNames.removeAll();
-					this.editingList.userNames.push(this.searchText());
-					this.searchText("");
+				if (this.inputText()) {
+					this.searchText(this.inputText());
+					this.inputText("");
 				}
 			};
 
 			this.canSearch = ko.computed(function() {
-				return this.searchText() != "";
+				return this.inputText() != "";
 			}, this);
 
-			// The active user tweets are (asynchronously) computed from editingList.userNames
+			// The active user tweets are (asynchronously) computed from searchText
 			ko.computed(function() {
-				twitterApi.getTweetsForUsers(this.editingList.userNames(),
-						this.currentTweets);
+				twitterApi.getLocationsByText(this.searchText(),
+						this.searchResults);
 			}, this);
 		};
 
-		ko.applyBindings(new TwitterListModel(savedLists));
+		ko.applyBindings(new ViewModel());
 
 		// Using jQuery for Ajax loading indicator - nothing to do with Knockout
 		$(".loadingIndicator").ajaxStart(function() {
@@ -146,13 +130,6 @@ li {
 		}).ajaxComplete(function() {
 			$(this).fadeOut();
 		});
-
-		//]]>
 	</script>
-
-
 </body>
-
-
 </html>
-

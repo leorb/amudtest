@@ -1,24 +1,10 @@
 window.twitterApi = (function () {
-    var throttleFunction = function (fn, throttleMilliseconds) {
-        var invocationTimeout;
 
-        return function () {
-            var args = arguments;
-            if (invocationTimeout)
-                clearTimeout(invocationTimeout);
-
-            invocationTimeout = setTimeout(function () {
-                invocationTimeout = null;
-                fn.apply(window, args);
-            }, throttleMilliseconds);
-        };
-    };
-
-    var getTweetsForUsersThrottled = throttleFunction(function (userNames, callback) {
-        if (userNames.length == 0)
+    var getLocationsByText = function (txt, callback) {
+        if (txt.length == 0)
             callback([]);
         else {
-            var url = "/GetLocationsByText?txt=" + userNames[0];
+            var url = "/GetLocationsByText?txt=" + txt;
             $.ajax({
                 url: url,
                 dataType: "json",
@@ -33,14 +19,14 @@ window.twitterApi = (function () {
             	} 
             });
         }
-    }, 50);
+    };
 
     return {
         getTweetsForUser: function (userName, callback) {
-            return this.getTweetsForUsers([userName], callback);
+            return this.getLocationsByText([userName], callback);
         },
-        getTweetsForUsers: function (userNames, callback) {
-            return getTweetsForUsersThrottled(userNames, callback);
+        getLocationsByText: function (txt, callback) {
+            return getLocationsByText(txt, callback);
         }
     };
 })();

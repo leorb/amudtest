@@ -1,7 +1,6 @@
 @CHARSET "UTF-8";
 
 *, body, button, input, textarea, select {
-  text-rendering: optimizeLegibility;
   font-size:100%;
 }
 
