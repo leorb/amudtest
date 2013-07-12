@@ -26,7 +26,8 @@ public class QueryService {
 		ServletOutputStream os = response.getOutputStream();
 		try {
 		    // Query the index.
-		    Results<ScoredDocument> results = getIndex().search(m_queryStr);
+        Index index = getIndex();
+		    Results<ScoredDocument> results = index.search(m_queryStr);
 		    new ResultsToJson(results).toJson(os);
 		} catch (SearchException e) {
 			throw new ServletException(e.getOperationResult().toString(), e);
