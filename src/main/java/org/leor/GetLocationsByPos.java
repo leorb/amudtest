@@ -19,6 +19,7 @@ public class GetLocationsByPos extends HttpServlet {
 		
 		String queryStr = "distance(loc, geopoint(" + lat + ", " + lon + ")) < 4500";
 		
+		// Just a comment
 		new QueryService(queryStr).doQuery(response);
 	}
 
