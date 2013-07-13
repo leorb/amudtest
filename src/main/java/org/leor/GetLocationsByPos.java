@@ -17,10 +17,10 @@ public class GetLocationsByPos extends HttpServlet {
 		String lat = request.getParameter("lat");
 		String lon = request.getParameter("lon");
 		
-		String queryStr = "distance(loc, geopoint(" + lat + ", " + lon + ")) < 4500";
+		String locExpr = "distance(loc, geopoint(" + lat + ", " + lon + "))";
+		String query = locExpr + " < 4500";
 		
-		// Just a comment
-		new QueryService(queryStr).doQuery(response);
+		new QueryService(query, locExpr).doQuery(response);
 	}
 
 }

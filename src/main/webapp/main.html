@@ -13,9 +13,7 @@
 </head>
 <body>
 	<div class='liveExample'>
-
 		<div class='configuration'>
-
 			<div class='currentUsers'>
 				<ul>
 					<li>
@@ -31,7 +29,7 @@
 		</div>
 		<div class='tweets'>
 			<div class='loadingIndicator'>Loading...</div>
-			<table width='100%' data-bind="foreach: searchResults">
+			<table data-bind="foreach: searchResults">
 				<tr>
 					<td><a class='twitterUser'
 						data-bind='attr: { href: "http://twitter.com/" + name }, text: name'
@@ -64,7 +62,7 @@
 
 			// The active user tweets are (asynchronously) computed from searchText
 			ko.computed(function() {
-				twitterApi.getLocationsByText(this.searchText(),
+				amudApi.getLocationsByText(this.searchText(),
 						this.searchResults);
 			}, this);
 		};
