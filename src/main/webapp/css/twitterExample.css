@@ -31,15 +31,11 @@ q:before,q:after {
 .configuration {
 	background-color: #DEDEDE;
 	border: 2px solid gray;
-	float: left;
-	height: 40em;
-	width: 40%;
 	padding: 0.5em;
 	border-right-width: 0;
 }
 
 .tweets {
-	width: 55%;
 	border: 2px solid gray;
 	height: 40em;
 	overflow: scroll;
@@ -47,7 +43,7 @@ q:before,q:after {
 	background-color: Black;
 	color: White;
 	padding: 0.5em;
-	position: relative;
+	/*position: relative;*/
 }
 
 .tweets table {
@@ -77,7 +73,6 @@ q:before,q:after {
 }
 
 .currentUsers {
-	height: 28em;
 	overflow-y: auto;
 	overflow-x: hidden;
 }

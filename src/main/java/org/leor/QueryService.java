@@ -25,17 +25,19 @@ public class QueryService {
 		m_query = Query.newBuilder().build(queryStr);
 	}
 
-	public QueryService(String queryStr, String sortStr) {
+	public QueryService(String sortStr, double defValue) {
 		SortExpression sortExpr = SortExpression.newBuilder()
 				.setExpression(sortStr)
 				.setDirection(SortExpression.SortDirection.ASCENDING)
-				.setDefaultValueNumeric(4501.0)
+				.setDefaultValueNumeric(defValue)
 				.build();
 		
 		SortOptions sortOptions = SortOptions.newBuilder()
 				.addSortExpression(sortExpr)
 				.build();
 
+		String queryStr = sortStr + " < " + Double.toString(defValue);
+		
 		m_query = Query.newBuilder()
 			    .setOptions(QueryOptions.newBuilder().setSortOptions(sortOptions))
 			    .build(queryStr);

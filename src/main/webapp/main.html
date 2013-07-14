@@ -14,6 +14,10 @@
 <body>
 	<div class='liveExample'>
 		<div class='configuration'>
+			<form data-bind='submit: addUser'>
+				<input data-bind='value: inputText, valueUpdate: "keyup"' />
+				<button data-bind='enable: canSearch' type='submit'>חפש</button>
+			</form>
 			<div class='currentUsers'>
 				<ul>
 					<li>
@@ -21,11 +25,6 @@
 					</li>
 				</ul>
 			</div>
-
-			<form data-bind='submit: addUser'>
-				<input data-bind='value: inputText, valueUpdate: "keyup"' />
-				<button data-bind='enable: canSearch' type='submit'>חפש</button>
-			</form>
 		</div>
 		<div class='tweets'>
 			<div class='loadingIndicator'>Loading...</div>
@@ -60,14 +59,15 @@
 				return this.inputText() != "";
 			}, this);
 
-			// The active user tweets are (asynchronously) computed from searchText
+			// The locations are (asynchronously) computed from searchText
 			ko.computed(function() {
 				amudApi.getLocationsByText(this.searchText(),
 						this.searchResults);
 			}, this);
 		};
 
-		ko.applyBindings(new ViewModel());
+		var app = new ViewModel();
+		ko.applyBindings(app);
 
 		// Using jQuery for Ajax loading indicator - nothing to do with Knockout
 		$(".loadingIndicator").ajaxStart(function() {
@@ -75,6 +75,32 @@
 		}).ajaxComplete(function() {
 			$(this).fadeOut();
 		});
+		
+		$(document).ready(function () {
+	        if (navigator.geolocation) {
+	            navigator.geolocation.getCurrentPosition(handle_geolocation_query, handle_errors);
+	        } else {
+	            alert("not supported");
+	        }			
+		});
+		
+		function handle_errors(error) {
+			switch(error.code) {
+				case error.PERMISSION_DENIED: alert("user did not share geolocation data");
+				break;
+				case error.POSITION_UNAVAILABLE: alert("could not detect current position");
+				break;
+				case error.TIMEOUT: alert("retrieving position timedout");
+				break;
+				default: alert("unknown error");
+				break;
+			}
+		}
+		
+		function handle_geolocation_query(position) {
+			app.searchText(position.coords.latitude + ',' + position.coords.longitude);
+		}
+
 	</script>
 </body>
 </html>
