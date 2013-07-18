@@ -29,6 +29,7 @@ public class ResultsToJson {
 
 		for (ScoredDocument document : m_results) {
 			jg.writeStartObject();
+			jg.writeStringField("id", document.getId());
 			for (Field f : document.getFields()) {
 				String name = f.getName();
 				switch (f.getType()) {

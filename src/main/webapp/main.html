@@ -23,6 +23,9 @@
 					<li>
 						<div data-bind="text: searchText"></div>
 					</li>
+					<li>
+						<div data-bind="text: statusText"></div>
+					</li>					
 				</ul>
 			</div>
 		</div>
@@ -31,11 +34,11 @@
 			<table data-bind="foreach: searchResults">
 				<tr>
 					<td><a class='twitterUser'
-						data-bind='attr: { href: "http://twitter.com/" + name }, text: name'
-						href='http://twitter.com/${ name }'> </a> <span
-						data-bind="text: desc"> </span>
+						data-bind='attr: { href: "http://amudanan.co.il/w/index.php/" + id}, text: name'></a>
+						<span data-bind="text: desc"></span>
 						<div class='tweetInfo' data-bind='text: lat'></div>
-						<div class='tweetInfo' data-bind='text: lon'></div></td>
+						<div class='tweetInfo' data-bind='text: lon'></div>
+					</td>
 				</tr>
 			</table>
 		</div>
@@ -47,6 +50,7 @@
 			this.searchText = ko.observable("");
 			this.inputText = ko.observable("");
 			this.searchResults = ko.observableArray([]);
+			this.statusText = ko.observable("");
 
 			this.addUser = function() {
 				if (this.inputText()) {
@@ -75,29 +79,54 @@
 		}).ajaxComplete(function() {
 			$(this).fadeOut();
 		});
+
+		var locOptions = {
+				enableHighAccuracy: false,
+				timeout: 5000,
+				maximumAge: 0
+			}; 
 		
 		$(document).ready(function () {
 	        if (navigator.geolocation) {
-	            navigator.geolocation.getCurrentPosition(handle_geolocation_query, handle_errors);
+	        	app.statusText("Getting position");
+	            navigator.geolocation.getCurrentPosition(handle_geolocation_query, handle_errors, locOptions);
 	        } else {
-	            alert("not supported");
+	        	app.statusText("Geolocation not supported");
 	        }
 		});
 		
 		function handle_errors(error) {
 			switch(error.code) {
-				case error.PERMISSION_DENIED: alert("user did not share geolocation data");
+				case error.PERMISSION_DENIED: 
+					app.statusText("User did not share geolocation data");
 				break;
-				case error.POSITION_UNAVAILABLE: alert("could not detect current position");
+				case error.POSITION_UNAVAILABLE:
+					if(locOptions.enableHighAccuracy) {
+						app.statusText("Could not detect current position with high accuracy. Done.");
+					} else {
+						app.statusText("Could not detect current position, trying high accuracy...");
+						locOptions.enableHighAccuracy = true;
+						locOptions.timeout = 10000;
+						navigator.geolocation.getCurrentPosition(handle_geolocation_query, handle_errors, locOptions);
+					}
 				break;
-				case error.TIMEOUT: alert("retrieving position timedout");
+				case error.TIMEOUT: 
+					if(locOptions.enableHighAccuracy) {
+						app.statusText("High accuracy detection timedout. Done.");
+					} else {
+						app.statusText("Low accuracy detection timedout. Trying high accuracy...");
+						locOptions.enableHighAccuracy = true;
+						locOptions.timeout = 10000;
+						navigator.geolocation.getCurrentPosition(handle_geolocation_query, handle_errors, locOptions);
+					}					
 				break;
-				default: alert("unknown error");
+				default: app.statusText("Unknown error:" + error.code);
 				break;
 			}
 		}
 		
 		function handle_geolocation_query(position) {
+			app.statusText("Position found.");
 			app.searchText(position.coords.latitude + ',' + position.coords.longitude);
 		}
 
