@@ -36,8 +36,7 @@
 					<td><a class='twitterUser'
 						data-bind='attr: { href: "http://amudanan.co.il/w/index.php/" + id}, text: name'></a>
 						<span data-bind="text: desc"></span>
-						<div class='tweetInfo' data-bind='text: lat'></div>
-						<div class='tweetInfo' data-bind='text: lon'></div>
+						<a class='tweetInfo' data-bind='attr: { href: "map.html?lat=" + lat + "&lon=" + lon}'>נווט</a>
 					</td>
 				</tr>
 			</table>
