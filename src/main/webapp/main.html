@@ -36,7 +36,7 @@
 					<td><a class='twitterUser'
 						data-bind='attr: { href: "http://amudanan.co.il/w/index.php/" + id}, text: name'></a>
 						<span data-bind="text: desc"></span>
-						<a class='tweetInfo' data-bind='attr: { href: "map.html?lat=" + lat + "&lon=" + lon}'>נווט</a>
+						<a class='tweetInfo' data-bind='attr: { href: "map.html?lat=" + lat + "&lon=" + lon + "&myLat=" + $root.myLat() + "&myLon=" + $root.myLon()}'>נווט</a>
 					</td>
 				</tr>
 			</table>
@@ -50,6 +50,8 @@
 			this.inputText = ko.observable("");
 			this.searchResults = ko.observableArray([]);
 			this.statusText = ko.observable("");
+			this.myLat = ko.observable("");
+			this.myLon = ko.observable("");
 
 			this.addUser = function() {
 				if (this.inputText()) {
@@ -127,6 +129,8 @@
 		function handle_geolocation_query(position) {
 			app.statusText("Position found.");
 			app.searchText(position.coords.latitude + ',' + position.coords.longitude);
+			app.myLat(position.coords.latitude);
+			app.myLon(position.coords.longitude);
 		}
 
 	</script>
