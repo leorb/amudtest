@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html dir='rtl'>
+<head>
+<title>Map</title>
+<meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+<meta charset="utf-8">
+<style>
+html,body,#map-canvas {
+	margin: 0;
+	padding: 0;
+	height: 100%;
+}
+</style>
+<script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false&language=iw"></script>
+<script>
+	var map;
+	
+	var locOptions = {
+			enableHighAccuracy: false,
+			timeout: 5000,
+			maximumAge: 0
+		}; 	
+	
+	function getLocation() {
+        if (navigator.geolocation) {
+        	console.log("Getting position");
+            navigator.geolocation.getCurrentPosition(handle_geolocation_query, handle_errors, locOptions);
+        } else {
+        	console.log("Geolocation not supported");
+        }
+	}
+	
+	function handle_errors(error) {
+		switch(error.code) {
+			case error.PERMISSION_DENIED: 
+				console.log("User did not share geolocation data");
+			break;
+			case error.POSITION_UNAVAILABLE:
+				if(locOptions.enableHighAccuracy) {
+					console.log("Could not detect current position with high accuracy. Done.");
+				} else {
+					console.log("Could not detect current position, trying high accuracy...");
+					locOptions.enableHighAccuracy = true;
+					locOptions.timeout = 10000;
+					navigator.geolocation.getCurrentPosition(handle_geolocation_query, handle_errors, locOptions);
+				}
+			break;
+			case error.TIMEOUT: 
+				if(locOptions.enableHighAccuracy) {
+					console.log("High accuracy detection timedout. Done.");
+				} else {
+					console.log("Low accuracy detection timedout. Trying high accuracy...");
+					locOptions.enableHighAccuracy = true;
+					locOptions.timeout = 10000;
+					navigator.geolocation.getCurrentPosition(handle_geolocation_query, handle_errors, locOptions);
+				}					
+			break;
+			default: console.log("Unknown error:" + error.code);
+			break;
+		}
+	}
+	
+	function handle_geolocation_query(position) {
+		console.log("Position found.");
+		console.log(position.coords.latitude + ',' + position.coords.longitude);
+
+		var myPos = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
+		
+		var bounds = new google.maps.LatLngBounds();
+		bounds.extend(new google.maps.LatLng(position.coords.latitude + 0.01, position.coords.longitude));
+		bounds.extend(new google.maps.LatLng(position.coords.latitude - 0.01, position.coords.longitude));
+		bounds.extend(new google.maps.LatLng(position.coords.latitude, position.coords.longitude + 0.01));
+		bounds.extend(new google.maps.LatLng(position.coords.latitude, position.coords.longitude - 0.01));
+        
+		var mapOptions = {
+			//mapTypeId : google.maps.MapTypeId.TERRAIN,
+			scaleControl: true,
+			streetViewControl: false
+		};
+		map = new google.maps.Map(document.getElementById('map-canvas'),
+				mapOptions);
+
+		map.fitBounds(bounds);
+
+		var arrow = new google.maps.Marker({
+			position : myPos,
+			map : map,
+			icon : {
+				path : google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
+				scale : 2
+			}
+		});
+		
+		var layer = new google.maps.FusionTablesLayer({
+			query: {
+				select: 'geometry',
+				from: '1d4ZigFkMi5T4SmRUlP9vWTGZji4I6ECRJiL9lqk'
+			}
+		});
+		
+		google.maps.event.addListener(map, 'click', function(event) {
+			console.log(event.latLng);
+		});
+		
+		layer.setMap(map);
+	}
+
+	google.maps.event.addDomListener(window, 'load', getLocation);
+</script>
+</head>
+<body>
+	<div id="map-canvas"></div>
+</body>
+</html>

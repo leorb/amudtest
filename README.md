@@ -31,3 +31,13 @@ amudtest
 
 mvn appengine:update
 
+
+1. When opening the app, show current location in the middle. Show all POIs in the area. Use the terrain map as default. When clicking/touching a TOI, show it's details. Show 7km radius around current location.
+2. Allow changing base map: Terrain / 50K / Road / the nice OpenMap one
+3. Show details for the closest TOI in a 30% frame. Should scroll if too big. Should show the distance. When touching / clicking, show the details for the TOI closest to the click.
+
+
+
+https://www.googleapis.com/fusiontables/v1/query?sql=SELECT * from 1d4ZigFkMi5T4SmRUlP9vWTGZji4I6ECRJiL9lqk
+ORDER+BY+ST_DISTANCE(Loc,LATLNG(22.288839,114.216251))+LIMIT+1 
+  
