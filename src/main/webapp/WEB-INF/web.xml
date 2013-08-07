@@ -32,4 +32,14 @@
     <servlet-name>GetLocationsByText</servlet-name>
     <url-pattern>/GetLocationsByText</url-pattern>
   </servlet-mapping>
+  
+  <servlet>
+    <servlet-name>AmudService</servlet-name>
+    <servlet-class>org.leor.AmudService</servlet-class>
+  </servlet> 
+  <servlet-mapping>
+    <servlet-name>AmudService</servlet-name>
+    <url-pattern>/AmudService</url-pattern>
+  </servlet-mapping>  
+  
 </web-app>

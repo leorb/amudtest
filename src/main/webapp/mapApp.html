@@ -11,15 +11,69 @@ html,body,#map-canvas {
 	height: 100%;
 }
 </style>
-<script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false&language=iw"></script>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
+<script src="//maps.googleapis.com/maps/api/js?v=3.exp&sensor=false&language=iw&&libraries=geometry"></script>
 <script>
 	var map;
-	
-	var locOptions = {
+	var rnd = Math.floor(Math.random() * 100000);
+	var cache = [], db = [];
+
+	var locOptions = (/** @type {GeolocationPositionOptions} */{
 			enableHighAccuracy: false,
-			timeout: 5000,
+			timeout: 10000,
 			maximumAge: 0
-		}; 	
+		}); 	
+	
+	function downloadJsonForTile(z, y, x) {
+		var cacheKey = x + " " + y;
+
+		if (-1 !== $.inArray(cacheKey, cache)) {
+			return;
+		} 
+		
+		var str = "AmudService?actions=gettile&rand=" + rnd + "&z=" + z + "&y=" + y + "&x=" + x + "&type=json&showprivatepoints=false&showpublicpoints=true";
+
+		$.getJSON(str, function(json) {
+			cache.push(cacheKey);
+			// Handle the JSON
+			
+			$.each(json.points, function() {
+				var pos = new google.maps.LatLng(this.lat, this.lon);
+				this.pos = pos;
+				new google.maps.Marker({
+					position : pos,
+					map : map,
+					icon : {
+						path : google.maps.SymbolPath.CIRCLE,
+						strokeColor : 'blue',
+						scale: 3,
+						strokeWeight: 2
+					}
+				});
+				db.push(this);
+			});
+		});
+	}
+	
+	function long2tile(lon, zoom) {
+		return (Math.floor((lon + 180) / 360 * Math.pow(2, zoom)));
+	}
+	
+	function lat2tile(lat, zoom) {
+		return (Math.floor((1 - Math.log(Math.tan(lat * Math.PI / 180) + 1 / Math.cos(lat * Math.PI / 180)) / Math.PI) / 2 * Math.pow(2, zoom)));
+	}	
+	
+	function requestPointsInBounds(latMin, latMax, lonMin, lonMax) {
+		var Xmin = long2tile(lonMin, 12);
+		var Xmax = long2tile(lonMax, 12);
+		var Ymax = lat2tile(latMin, 12);
+		var Ymin = lat2tile(latMax, 12);
+		for (var y = Ymin; y <= Ymax; y++) {
+			for (var x = Xmin; x <= Xmax; x++) {
+				downloadJsonForTile(12, y, x);
+			}
+		}
+	}
 	
 	function getLocation() {
         if (navigator.geolocation) {
@@ -82,7 +136,7 @@ html,body,#map-canvas {
 
 		map.fitBounds(bounds);
 
-		var arrow = new google.maps.Marker({
+		new google.maps.Marker({
 			position : myPos,
 			map : map,
 			icon : {
@@ -91,18 +145,32 @@ html,body,#map-canvas {
 			}
 		});
 		
-		var layer = new google.maps.FusionTablesLayer({
-			query: {
-				select: 'geometry',
-				from: '1d4ZigFkMi5T4SmRUlP9vWTGZji4I6ECRJiL9lqk'
-			}
-		});
-		
 		google.maps.event.addListener(map, 'click', function(event) {
-			console.log(event.latLng);
+			
+			var minPoint, minDist = 100000, fDist = google.maps.geometry.spherical.computeDistanceBetween;
+			$.each(db, function() {
+				var dist = fDist(this.pos, event.latLng);
+				if(dist < minDist) {
+					minDist = dist;
+					minPoint = this;
+				}
+			});
+			
+			var infowindow = new google.maps.InfoWindow({
+				content: minPoint.name,
+				position: minPoint.pos
+			});
+
+		    infowindow.open(map);
 		});
 		
-		layer.setMap(map);
+		google.maps.event.addListener(map, 'bounds_changed', function() {
+			var bounds = map.getBounds();
+			var ne = bounds.getNorthEast();
+			var sw = bounds.getSouthWest();
+			
+			requestPointsInBounds(sw.lat(), ne.lat(), sw.lng(), ne.lng());
+		});
 	}
 
 	google.maps.event.addDomListener(window, 'load', getLocation);

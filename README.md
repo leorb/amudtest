@@ -37,7 +37,5 @@ mvn appengine:update
 3. Show details for the closest TOI in a 30% frame. Should scroll if too big. Should show the distance. When touching / clicking, show the details for the TOI closest to the click.
 
 
-
-https://www.googleapis.com/fusiontables/v1/query?sql=SELECT * from 1d4ZigFkMi5T4SmRUlP9vWTGZji4I6ECRJiL9lqk
-ORDER+BY+ST_DISTANCE(Loc,LATLNG(22.288839,114.216251))+LIMIT+1 
-  
+- Upgrade App Engine (Needs Maven 3.1)
+- Fix server side timout using the low-level API 
