@@ -13,16 +13,52 @@ html,body,#map-canvas {
 </style>
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
 <script src="//maps.googleapis.com/maps/api/js?v=3.exp&sensor=false&language=iw&&libraries=geometry"></script>
+
 <script>
 	var map;
 	var rnd = Math.floor(Math.random() * 100000);
 	var cache = [], db = [];
-
-	var locOptions = (/** @type {GeolocationPositionOptions} */{
-			enableHighAccuracy: false,
-			timeout: 10000,
-			maximumAge: 0
-		}); 	
+	var geolocationFound = false;
+	
+	function thumbURL(image, size) {
+		var img = "http://amudanan.co.il/services/thumb.php?file=";
+		img += (image.indexOf("my.") >= 0) ? "../images/user/" : "../w/images/";
+		return img + encodeURIComponent(image.replace(/\s/g, '_')) + "&size=" + size;
+	}
+	
+	function getPointDescription(objPoint) {
+	    var html = [];
+        html.push(unescape(objPoint["name"]) + "<br />");
+        html.push(unescape(objPoint["description"].replace(/<br \/><br \/>/g, "<br />")) + "<br />");
+	    if (objPoint["contributors"].length > 0) {
+	        html.push("<span style='font-size:10px; font-weight:bold;'>");
+	        html.push("מקור: ");
+	        arrContributors = objPoint["contributors"].split(", ");
+	        for (var i = 0; i < arrContributors.length; i++) {
+	            html.push(arrContributors[i]);
+	            if (i < arrContributors.length - 1)
+	                html.push(", ");
+	        }
+	        html.push("</span>");
+	    }
+	    html.push("<div style='font-size:5px;'>&nbsp;<br /></div>");
+	    if (objPoint["images"] && objPoint["images"].length > 0) {
+            var strImages = String(objPoint["images"]);
+            var arrImages = strImages.split(",");
+            if (arrImages[arrImages.length - 1] == "") {
+                arrImages.splice(arrImages.length - 1, 1);
+            }
+            html.push("<a id='pointImg0' class='thumbs' target='_blank' href='" + thumbURL(arrImages[0], 800) + "'><img src='" + thumbURL(arrImages[0], 90) + "' style='width:90px;' alt='' /></a>");
+            if (arrImages.length > 1) {
+            	html.push("<div style=text-align:right'>");
+                for (var i = 1; i < arrImages.length; i++) {
+                    html.push("<a id='pointImg" + i + "' class='thumbs' target='_blank' href='" + thumbURL(arrImages[i], 800) + "'><img src='" + thumbURL(arrImages[i], 60) + "' style='height:60px;' alt='' /></a>");
+                }
+                html.push("</div><br />");
+	        }
+	    }
+	    return html.join('');
+	}
 	
 	function downloadJsonForTile(z, y, x) {
 		var cacheKey = x + " " + y;
@@ -78,45 +114,40 @@ html,body,#map-canvas {
 	function getLocation() {
         if (navigator.geolocation) {
         	console.log("Getting position");
-            navigator.geolocation.getCurrentPosition(handle_geolocation_query, handle_errors, locOptions);
+            navigator.geolocation.getCurrentPosition(handle_geolocation_query, handle_errors_high, {enableHighAccuracy: true,  timeout: 20000, maximumAge: 0});
+            navigator.geolocation.getCurrentPosition(handle_geolocation_query, handle_errors_low,  {enableHighAccuracy: false, timeout: 20000, maximumAge: 0});
         } else {
-        	console.log("Geolocation not supported");
+        	document.write("Geolocation not supported.");
         }
 	}
-	
-	function handle_errors(error) {
+
+	function handle_errors(error, type) {
 		switch(error.code) {
 			case error.PERMISSION_DENIED: 
-				console.log("User did not share geolocation data");
+				document.write("User did not share geolocation data (" + type + ")");
 			break;
 			case error.POSITION_UNAVAILABLE:
-				if(locOptions.enableHighAccuracy) {
-					console.log("Could not detect current position with high accuracy. Done.");
-				} else {
-					console.log("Could not detect current position, trying high accuracy...");
-					locOptions.enableHighAccuracy = true;
-					locOptions.timeout = 10000;
-					navigator.geolocation.getCurrentPosition(handle_geolocation_query, handle_errors, locOptions);
-				}
+				document.write("Could not detect current position with (" + type + ") accuracy. Done.");
 			break;
 			case error.TIMEOUT: 
-				if(locOptions.enableHighAccuracy) {
-					console.log("High accuracy detection timedout. Done.");
-				} else {
-					console.log("Low accuracy detection timedout. Trying high accuracy...");
-					locOptions.enableHighAccuracy = true;
-					locOptions.timeout = 10000;
-					navigator.geolocation.getCurrentPosition(handle_geolocation_query, handle_errors, locOptions);
-				}					
+				document.write("(" + type + ") accuracy detection timedout. Done.");
 			break;
-			default: console.log("Unknown error:" + error.code);
+			default: document.write("Unknown error (" + type + "):" + error.code);
 			break;
 		}
 	}
+
+	function handle_errors_high(error) {
+		handle_errors(error, "high");
+	}
+	
+	function handle_errors_low(error) {
+		handle_errors(error, "low");
+	}
 	
 	function handle_geolocation_query(position) {
-		console.log("Position found.");
-		console.log(position.coords.latitude + ',' + position.coords.longitude);
+		if(geolocationFound) return;
+		geolocationFound = true;
 
 		var myPos = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
 		
@@ -145,6 +176,7 @@ html,body,#map-canvas {
 			}
 		});
 		
+		var infowindow = new google.maps.InfoWindow();
 		google.maps.event.addListener(map, 'click', function(event) {
 			
 			var minPoint, minDist = 100000, fDist = google.maps.geometry.spherical.computeDistanceBetween;
@@ -156,11 +188,8 @@ html,body,#map-canvas {
 				}
 			});
 			
-			var infowindow = new google.maps.InfoWindow({
-				content: minPoint.name,
-				position: minPoint.pos
-			});
-
+			infowindow.setContent(getPointDescription(minPoint));
+			infowindow.setPosition(minPoint.pos);
 		    infowindow.open(map);
 		});
 		
