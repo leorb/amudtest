@@ -31,11 +31,13 @@ amudtest
 
 mvn appengine:update
 
+copy /Y C:\Users\Leor\Documents\GitHub\amudtest\src\main\webapp\mapApp.html C:\Users\Leor\Documents\GitHub\amudtest\target\amudtest-1.0-SNAPSHOT
 
 1. When opening the app, show current location in the middle. Show all POIs in the area. Use the terrain map as default. When clicking/touching a TOI, show it's details. Show 7km radius around current location.
 2. Allow changing base map: Terrain / 50K / Road / the nice OpenMap one
 3. Show details for the closest TOI in a 30% frame. Should scroll if too big. Should show the distance. When touching / clicking, show the details for the TOI closest to the click.
 
 
-- Upgrade App Engine (Needs Maven 3.1)
-- Fix server side timout using the low-level API 
+- Fix server side timout using the low-level API
+
+ 

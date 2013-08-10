@@ -13,52 +13,19 @@ html,body,#map-canvas {
 </style>
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
 <script src="//maps.googleapis.com/maps/api/js?v=3.exp&sensor=false&language=iw&&libraries=geometry"></script>
-
+<script src="//cdnjs.cloudflare.com/ajax/libs/handlebars.js/1.0.0/handlebars.min.js"></script>
 <script>
 	var map;
 	var rnd = Math.floor(Math.random() * 100000);
 	var cache = [], db = [];
 	var geolocationFound = false;
+	var template;
 	
-	function thumbURL(image, size) {
+	Handlebars.registerHelper('thumbURL', function(image, size) {
 		var img = "http://amudanan.co.il/services/thumb.php?file=";
 		img += (image.indexOf("my.") >= 0) ? "../images/user/" : "../w/images/";
 		return img + encodeURIComponent(image.replace(/\s/g, '_')) + "&size=" + size;
-	}
-	
-	function getPointDescription(objPoint) {
-	    var html = [];
-        html.push(unescape(objPoint["name"]) + "<br />");
-        html.push(unescape(objPoint["description"].replace(/<br \/><br \/>/g, "<br />")) + "<br />");
-	    if (objPoint["contributors"].length > 0) {
-	        html.push("<span style='font-size:10px; font-weight:bold;'>");
-	        html.push("מקור: ");
-	        arrContributors = objPoint["contributors"].split(", ");
-	        for (var i = 0; i < arrContributors.length; i++) {
-	            html.push(arrContributors[i]);
-	            if (i < arrContributors.length - 1)
-	                html.push(", ");
-	        }
-	        html.push("</span>");
-	    }
-	    html.push("<div style='font-size:5px;'>&nbsp;<br /></div>");
-	    if (objPoint["images"] && objPoint["images"].length > 0) {
-            var strImages = String(objPoint["images"]);
-            var arrImages = strImages.split(",");
-            if (arrImages[arrImages.length - 1] == "") {
-                arrImages.splice(arrImages.length - 1, 1);
-            }
-            html.push("<a id='pointImg0' class='thumbs' target='_blank' href='" + thumbURL(arrImages[0], 800) + "'><img src='" + thumbURL(arrImages[0], 90) + "' style='width:90px;' alt='' /></a>");
-            if (arrImages.length > 1) {
-            	html.push("<div style=text-align:right'>");
-                for (var i = 1; i < arrImages.length; i++) {
-                    html.push("<a id='pointImg" + i + "' class='thumbs' target='_blank' href='" + thumbURL(arrImages[i], 800) + "'><img src='" + thumbURL(arrImages[i], 60) + "' style='height:60px;' alt='' /></a>");
-                }
-                html.push("</div><br />");
-	        }
-	    }
-	    return html.join('');
-	}
+	});
 	
 	function downloadJsonForTile(z, y, x) {
 		var cacheKey = x + " " + y;
@@ -119,6 +86,8 @@ html,body,#map-canvas {
         } else {
         	document.write("Geolocation not supported.");
         }
+        var templateSource = document.getElementById("infowindow-template").textContent;
+        template = Handlebars.compile(templateSource);
 	}
 
 	function handle_errors(error, type) {
@@ -187,8 +156,17 @@ html,body,#map-canvas {
 					minPoint = this;
 				}
 			});
-			
-			infowindow.setContent(getPointDescription(minPoint));
+		
+			if(minPoint.hasOwnProperty('images')) {
+				var arrImages = minPoint.images.split(",");
+				if (arrImages[arrImages.length - 1].length === 0) {
+					arrImages.splice(arrImages.length - 1, 1);
+				}
+			}
+
+			minPoint.aImages = arrImages;
+			minPoint.dist = fDist(minPoint.pos, myPos).toFixed(0);
+			infowindow.setContent(template(minPoint));
 			infowindow.setPosition(minPoint.pos);
 		    infowindow.open(map);
 		});
@@ -203,9 +181,43 @@ html,body,#map-canvas {
 	}
 
 	google.maps.event.addDomListener(window, 'load', getLocation);
+	    
 </script>
+<style>
+.infowindow {
+	font-family: Arial;
+}
+
+.infowindow .small {
+	font-size: 10px
+}
+
+.infowindow p {
+	margin: 0px;
+}
+
+.thumbs {
+	float: left;
+}
+
+</style>
 </head>
 <body>
+	<script id="infowindow-template" type="text/x-handlebars-template">
+<div class='infowindow'>
+<p><b>{{name}}</b></p>
+<p class='small'>מרחק: {{dist}} מ'</p>
+<p>{{description}}</p>
+{{#if contributors}}
+<p class='small'><b>
+מקור: {{contributors}}
+<b></p>
+{{/if}}
+{{#each aImages}}
+	<a class='thumbs' target='_blank' href='{{thumbURL this 800}}'><img src='{{thumbURL this 90}}' style='width:90px;'/></a>
+{{/each}}
+</div>
+	</script>
 	<div id="map-canvas"></div>
 </body>
 </html>
